@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"context"
@@ -11,6 +11,8 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
+	"phoneBook/internal/models"
+
 )
 
 type Handler struct {
@@ -23,7 +25,7 @@ func NewHandler(db *sql.DB, cache *redis.Client) *Handler {
 }
 
 func (h *Handler) AddContact(w http.ResponseWriter, r *http.Request) {
-	var c Contact
+	var c models.Contact
 	if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -42,7 +44,7 @@ func (h *Handler) AddContact(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) UpdateContact(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
-	var c Contact
+	var c models.Contact
 	if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -91,9 +93,9 @@ func (h *Handler) GetContacts(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var contacts []Contact
+	var contacts []models.Contact
 	for rows.Next() {
-		var c Contact
+		var c models.Contact
 		err := rows.Scan(&c.ID, &c.FirstName, &c.LastName, &c.Phone, &c.Address)
 		if err != nil {
 			log.Printf("[ERROR] Failed to scan row: %v", err)
@@ -133,9 +135,9 @@ func (h *Handler) SearchContacts(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var results []Contact
+	var results []models.Contact
 	for rows.Next() {
-		var c Contact
+		var c models.Contact
 		err := rows.Scan(&c.ID, &c.FirstName, &c.LastName, &c.Phone, &c.Address)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

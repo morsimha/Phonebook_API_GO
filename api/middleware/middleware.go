@@ -1,19 +1,20 @@
-package main
+package middleware
 
 import (
 	"log"
 	"net/http"
 	"time"
+	"phoneBook/pkg/metrics"
 )
 
-func metricsMiddleware(next http.Handler) http.Handler {
+func MetricsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestCount.Inc()
+		metrics.RequestCount.Inc()
 		next.ServeHTTP(w, r)
 	})
 }
 
-func loggingMiddleware(next http.Handler) http.Handler {
+func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		next.ServeHTTP(w, r)

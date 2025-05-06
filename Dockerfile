@@ -8,6 +8,6 @@ RUN go mod download
 
 COPY . ./
 
-RUN go build -o phonebook .
+RUN go build -o phonebook ./cmd/server
 
 CMD ["./phonebook"]

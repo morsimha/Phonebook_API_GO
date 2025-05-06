@@ -5,17 +5,15 @@ import (
 	"net/http"
 	"os"
 
+	"phoneBook/api/handlers"
+	"phoneBook/api/middleware"
+	"phoneBook/internal/services"
+	"phoneBook/pkg/metrics"
+	
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-)
-
-var requestCount = prometheus.NewCounter(
-	prometheus.CounterOpts{
-		Name: "http_requests_total",
-		Help: "Total number of HTTP requests",
-	},
 )
 
 func main() {
@@ -23,20 +21,20 @@ func main() {
 		log.Fatalf("[ERROR] Failed to load environment: %v", err)
 	}
 
-	db, err := initDB()
+	db, err := services.InitDB()
 	if err != nil {
 		log.Fatalf("[ERROR] Failed to initialize database: %v", err)
 	}
 	log.Println("[INFO] Successfully connected to PostgreSQL")
 
-	rdb, err := initRedis()
+	rdb, err := services.InitRedis()
 	if err != nil {
 		log.Fatalf("[ERROR] Failed to connect to Redis: %v", err)
 	}
 	log.Println("[INFO] Successfully connected to Redis")
 
 	log.Println("[DEBUG] Redis connection established")
-	h := NewHandler(db, rdb)
+	h := handlers.NewHandler(db, rdb)
 	r := setupRouter(h)
 
 	port := os.Getenv("PORT")
@@ -58,11 +56,11 @@ func initConfig() error {
 	return nil
 }
 
-func setupRouter(h *Handler) *mux.Router {
-	prometheus.MustRegister(requestCount)
+func setupRouter(h *handlers.Handler) *mux.Router {
+	prometheus.MustRegister(metrics.RequestCount)
 	r := mux.NewRouter()
-	r.Use(loggingMiddleware)
-	r.Use(metricsMiddleware)
+	r.Use(middleware.LoggingMiddleware)
+	r.Use(middleware.MetricsMiddleware)
 
 	r.HandleFunc("/contacts", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("[INFO] Handling GET /contacts")

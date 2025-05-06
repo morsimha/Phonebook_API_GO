@@ -1,4 +1,4 @@
-package main
+package services
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func initDB() (*sql.DB, error) {
+func InitDB() (*sql.DB, error) {
 	host := os.Getenv("DB_HOST")
 	port := os.Getenv("DB_PORT")
 	user := os.Getenv("DB_USER")
@@ -28,7 +28,7 @@ func initDB() (*sql.DB, error) {
 		return nil, fmt.Errorf("sql.Open error: %w", err)
 	}
 
-	// ✅ ניסיון להתחבר מחדש עד 10 פעמים (10 שניות)
+// Set connection pool settings after opening the connection
 	for i := 1; i <= 10; i++ {
 		err = db.Ping()
 		if err == nil {
@@ -44,7 +44,7 @@ func initDB() (*sql.DB, error) {
 	return db, nil
 }
 
-func initRedis() (*redis.Client, error) {
+func InitRedis() (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_ADDR"),
 		Password: "",
